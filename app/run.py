@@ -17,6 +17,9 @@ from sklearn.base import BaseEstimator, TransformerMixin
 app = Flask(__name__)
 
 def tokenize(text):
+    """
+    Needed here in order for loading of model.
+    """
     tokens = word_tokenize(text)
     lemmatizer = WordNetLemmatizer()
 
@@ -28,7 +31,9 @@ def tokenize(text):
     return clean_tokens
 
 class StartingVerbExtractor(BaseEstimator, TransformerMixin):
-
+    """
+    Needed here in order for loading of model.
+    """
     def starting_verb(self, text):
         # tokenize by sentences
         sentence_list = nltk.sent_tokenize(text)
@@ -57,11 +62,11 @@ class StartingVerbExtractor(BaseEstimator, TransformerMixin):
         return pd.DataFrame(X_tagged)
 
 # load data
-engine = create_engine(r'sqlite:///.../messages.db')
+engine = create_engine(r'sqlite:///C:/.../messages.db')
 df = pd.read_sql_table('messages', engine)
 
 # load model
-model = joblib.load(".../classifier.pkl")
+model = joblib.load("C:/.../classifier.pkl")
 
 
 # index webpage displays cool visuals and receives user input text for model

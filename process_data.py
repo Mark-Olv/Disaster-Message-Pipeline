@@ -6,6 +6,14 @@ from sqlalchemy import create_engine
 
 
 def load_data(messages_filepath, categories_filepath):
+    """
+    Keyword arguments:
+        message_filepath - Where to find the message.csv file.
+        categories_filepath- Where to find the categories.csv file.
+
+    Return:
+        A dataframe with the messages and categories. 
+    """
     messages = pd.read_csv(messages_filepath)
     categories = pd.read_csv(categories_filepath)
     df = messages.merge(categories, how='inner', on='id')
@@ -13,6 +21,14 @@ def load_data(messages_filepath, categories_filepath):
     
 
 def clean_data(df):
+    """
+    Keyword arguments:
+        df - The dataframe with the messages and categories data.
+        
+    Return:
+        df - A dataframe with cleaned data, removed duplicates and replaced.
+        outlier data.Transformed the categories into numerical data.
+    """
     
     categories_id = df['id'].astype('int64').copy()
     categories = df['categories'].str.split(';', expand=True)
@@ -49,6 +65,15 @@ def clean_data(df):
 
 
 def save_data(df, database_filename):
+    """
+    Keyword Arguments:
+        df - A cleaned dataframe that will be saved.
+        database_filename - the name of the database and where to save it.
+        In the form of a file path. Example: C:/.../databasename.db
+        
+    Return:
+        None
+    """
     db_name = 'sqlite:///' + database_filename
     engine = create_engine(db_name)
     df.to_sql(database_filename, engine, index=False) 

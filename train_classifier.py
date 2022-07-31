@@ -7,17 +7,14 @@ import nltk
 nltk.download(['punkt', 'wordnet', 'averaged_perceptron_tagger'])
 
 import re
-import numpy as np
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 
 import pickle
 
-
-from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.neural_network import MLPClassifier
+#from sklearn.neural_network import MLPClassifier
 
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV
@@ -31,9 +28,22 @@ from nltk.corpus import stopwords
 
 
 def load_data(database_filepath):
+    """
+    Loads the data from the database and separates the data into input and
+    output of the model for the training and testing steps. Additionally, 
+    ouputs the categories names so it can be used in the evaluation step.
+    
+    Keyword Argument:
+        database_filepath - A filepath of where to find the database file
+    
+    Returns:
+        X - A pandas series object.
+        Y - A pandas dataframe.
+        Y.columns - A python list.
+    """
     complete_database_filepath = 'sqlite:///' + database_filepath
     engine = create_engine(complete_database_filepath)
-    # When you save a db as tables_name.db, the tables_name is the tables name
+    # When you save a db as tables_name.db, the tables_name is the table's name
     table_name = os.path.basename(database_filepath).replace('db', '').replace('.', '')
     sql = 'SELECT * FROM ' + table_name
     df = pd.read_sql(sql, engine.connect())
@@ -45,6 +55,16 @@ def load_data(database_filepath):
     return X, Y, Y.columns
 
 def tokenize(text):
+    """
+    Used in the model. Cleans a message of extraneous words and breaks down
+        the message into usable components.
+    
+    Keyword Argument:
+        text - A string
+        
+    Returns:
+        clean_tokens - A list
+    """
     url_regex = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
     detected_urls = re.findall(url_regex, text)
     for url in detected_urls:
@@ -61,8 +81,22 @@ def tokenize(text):
     return clean_tokens
 
 class StartingVerbExtractor(BaseEstimator, TransformerMixin):
-
+    """A class for customizing the model. This is a custom step implemented 
+    in our model. Sklearn's pipeline requires the fit and transform attributes
+    to work with a pipeline object. This class was obtained from Udacity.
+    
+    Methods:
+        starting_verb - uses nltk to process data into numerical data based on
+        the part of speech the word belongs to.
+        fit - passes itself through. 
+        transform - Applies the starting_verb function to the message series
+        
+    """
     def starting_verb(self, text):
+        """
+        Uses nltk to process data into numerical data based on
+        the part of speech the word belongs to.
+        """
         # tokenize by sentences
         sentence_list = nltk.sent_tokenize(text)
         
@@ -91,13 +125,13 @@ class StartingVerbExtractor(BaseEstimator, TransformerMixin):
 
 
 def build_model():
-    
-
-
     """
     Builds a pipeline 
     
-    Returns a Scikit learn pipeline to processes text data
+    Keyword arguments:
+        None
+    Return:
+        pipeline - A Scikit learn pipeline.
     """
     pipeline = Pipeline([
         ('features', FeatureUnion([
@@ -110,19 +144,41 @@ def build_model():
             ('starting_verb', StartingVerbExtractor())
         ])),
 
-        ('clf', MultiOutputClassifier(RandomForestClassifier(n_jobs=-1, verbose=True)))
+        ('clf', MultiOutputClassifier(RandomForestClassifier(n_estimators=5, 
+                                                             n_jobs=-1, verbose=True)))
     ])
     
     return pipeline
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
+    """
+    Evaluates the model.
+    
+    Keyword argument:
+        model - A pipeline object.
+        X_test - Panda's series.
+        Y_test - Panda's dataframe.
+        category_names - A python list.
+    Return:
+        None
+        prints sklearn's metric classification report
+    """
     Y_pred_test = model.predict(X_test)
     print(classification_report(Y_test.values, Y_pred_test, target_names=category_names))
 
 
 
 def save_model(model, model_filepath):
+    """
+    Saves the model into a pickle file.
+    
+    Keyword arguemnts:
+        model - A pipeline object
+        model_filepath - A filepath to save the model at.
+    Return:
+        None
+    """
     
     #dump and dumps are different pickle functions.
     pickle.dump(model, open(model_filepath, 'wb'))
