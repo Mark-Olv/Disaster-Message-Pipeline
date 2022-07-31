@@ -5,9 +5,9 @@ Pandas' main object is the dataframe. It is compatible with numpy, a popular dat
 
 Sklearn (Scikit-Learn) is a machine learning library. It contains an incredible number of different objects and tools to be used. This library has machine learning models such as neural networks, linear models, random forests, and SVM to name a few.
 
-Sqlalchemy
+Sqlalchemy is a database interaction libary. This library allows users to make connections to various different sql databases and pull or push data. This libary can be used alongside Pandas to upload data or pull data using SQL. 
 
-Nltk
+Nltk is a natural language processing library. It enables users to parse through large amount of text data and simpifiy text.
 
 The file used in this analysis are messages compiles by figure eight. There are 36 different categories that the message can fall into. 
 
