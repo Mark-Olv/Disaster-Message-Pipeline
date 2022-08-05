@@ -58,8 +58,9 @@ def clean_data(df):
     df.drop(df[df['message'].duplicated()].index, inplace=True)
     df = df[~df['message'].str.isspace()]
     df.reindex(copy=False)
-    df[df['related'] == 2] = 1
-    df[df['request'] == 2] = 1
+    
+    df[df['related'] == 2]['related'] = 1
+    df[df['request'] == 2] ['request']= 1
     
     return df
 

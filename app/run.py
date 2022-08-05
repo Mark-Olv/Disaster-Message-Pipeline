@@ -1,6 +1,7 @@
 import json
 import plotly
 import pandas as pd
+import numpy as np
 
 import nltk
 from nltk.stem import WordNetLemmatizer
@@ -62,9 +63,8 @@ class StartingVerbExtractor(BaseEstimator, TransformerMixin):
         return pd.DataFrame(X_tagged)
 
 # load data
-engine = create_engine(r'sqlite:///C:/.../messages.db')
-df = pd.read_sql_table('messages', engine)
-
+engine = create_engine(r'sqlite:///.../messages.db')
+df = pd.read_sql_table('messages.db', engine)
 # load model
 model = joblib.load("C:/.../classifier.pkl")
 
@@ -79,8 +79,18 @@ def index():
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
     
+    categories = df[df.columns[4:]]
+    category_counts = (categories.mean()*categories.shape[0]).sort_values(ascending=False)
+    category_names = list(category_counts.index)
+    
+    bins = [0, 40, 80, 120, 160, 200, np.inf]
+    df['MyBins'] = pd.cut(df['message'].str.len(), bins)
+    myBins = ["(0, 40)", "(40, 80)", "(80, 120)", "(120, 160)", "(160, 200)",
+              "(200, max length)"]
+    
+    message_counts = df['MyBins'].value_counts(sort=False)
+    
     # create visuals
-    # TODO: Below is an example - modify to create your own visuals
     graphs = [
         {
             'data': [
@@ -97,6 +107,42 @@ def index():
                 },
                 'xaxis': {
                     'title': "Genre"
+                }
+            }
+        },
+        {
+            'data': [
+                Bar(
+                    x=category_names,
+                    y=category_counts
+                )
+            ],
+
+            'layout': {
+                'title': 'Distribution of Message Categories',
+                'yaxis': {
+                    'title': "Count"
+                },
+                'xaxis': {
+                    'title': "Categories"
+                }
+            }
+        },
+        {
+            'data': [
+                Bar(
+                    x=myBins, #df['MyBins'].astype('string'), #needs to bin this
+                    y=message_counts # occurences of bins
+                )
+            ],
+
+            'layout': {
+                'title': 'Distribution of Message Length',
+                'yaxis': {
+                    'title': "Length of message"
+                },
+                'xaxis': {
+                    'title': "Bins"
                 }
             }
         }

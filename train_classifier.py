@@ -44,9 +44,11 @@ def load_data(database_filepath):
     complete_database_filepath = 'sqlite:///' + database_filepath
     engine = create_engine(complete_database_filepath)
     # When you save a db as tables_name.db, the tables_name is the table's name
-    table_name = os.path.basename(database_filepath).replace('db', '').replace('.', '')
+    table_name = os.path.basename(database_filepath)
+    #table_name = os.path.basename(database_filepath).replace('db', '').replace('.', '')
     sql = 'SELECT * FROM ' + table_name
-    df = pd.read_sql(sql, engine.connect())
+    #df = pd.read_sql(sql, engine.connect())
+    df = pd.read_sql_table('messages.db', engine)
     df.drop('original', axis=1, inplace=True)
     df.dropna(axis=0, how='any', inplace=True)
 
@@ -148,7 +150,11 @@ def build_model():
                                                              n_jobs=-1, verbose=True)))
     ])
     
-    return pipeline
+    parameters = {'clf__estimator__n_estimators':[10, 15],  #estimator__n_estimators\n",
+                  'clf__estimator__criterion': ['gini']}
+    cv = GridSearchCV(pipeline, param_grid=parameters, scoring='f1_micro')
+    
+    return cv
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
@@ -179,9 +185,9 @@ def save_model(model, model_filepath):
     Return:
         None
     """
-    
+    final_model = model.best_estimator_
     #dump and dumps are different pickle functions.
-    pickle.dump(model, open(model_filepath, 'wb'))
+    pickle.dump(final_model, open(model_filepath, 'wb'))
     
 
 
