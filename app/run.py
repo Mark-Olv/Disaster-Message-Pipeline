@@ -63,7 +63,7 @@ class StartingVerbExtractor(BaseEstimator, TransformerMixin):
         return pd.DataFrame(X_tagged)
 
 # load data
-engine = create_engine(r'sqlite:///.../messages.db')
+engine = create_engine(r'sqlite:///C:/.../messages.db')
 df = pd.read_sql_table('messages.db', engine)
 # load model
 model = joblib.load("C:/.../classifier.pkl")
@@ -110,6 +110,7 @@ def index():
                 }
             }
         },
+        
         {
             'data': [
                 Bar(
